@@ -22,6 +22,7 @@ import Hydra.Chain.Direct.Fixture (
   testPolicyId,
   testSeedInput,
  )
+import Hydra.Chain.Direct.ScriptRegistry (genScriptRegistry)
 import Hydra.Chain.Direct.Tx (
   InitialThreadOutput (..),
   assetNameFromVerificationKey,
@@ -60,10 +61,13 @@ healthyCollectComTx =
   tx =
     collectComTx
       testNetworkId
+      scriptRegistry
       somePartyCardanoVerificationKey
       initialThreadOutput
       ((txOut &&& scriptData) <$> healthyCommits)
       (mkHeadId testPolicyId)
+
+  scriptRegistry = genScriptRegistry `generateWith` 42
 
   somePartyCardanoVerificationKey = flip generateWith 42 $ do
     genForParty genVerificationKey <$> elements healthyParties
