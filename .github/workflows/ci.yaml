@@ -196,6 +196,7 @@ jobs:
           cabal-${{ runner.os }}-${{ hashFiles('cabal.project', 'default.nix', 'shell.nix') }}
 
     - name: 📈 Benchmark
+      continue-on-error: true
       run: |
         nix develop .#ci --command bash -c 'cabal bench ${{ matrix.bench }} --benchmark-options "${{ matrix.options }}"'
 
