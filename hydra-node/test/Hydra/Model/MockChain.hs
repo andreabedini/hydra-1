@@ -99,6 +99,7 @@ mockChainAndNetwork tr seedKeys _parties nodes cp = do
                      in ScriptRegistry
                           { initialReference = (txIn, txOut)
                           , commitReference = (txIn, txOut)
+                          , headReference = (txIn, txOut)
                           }
                 , contestationPeriod = cp
                 }
