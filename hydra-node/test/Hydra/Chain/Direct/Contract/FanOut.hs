@@ -11,6 +11,7 @@ import Hydra.Prelude hiding (label)
 import Cardano.Api.UTxO as UTxO
 import Hydra.Chain.Direct.Contract.Mutation (Mutation (..), SomeMutation (..))
 import Hydra.Chain.Direct.Fixture (testNetworkId, testPolicyId, testSeedInput)
+import Hydra.Chain.Direct.ScriptRegistry (genScriptRegistry, registryUTxO)
 import Hydra.Chain.Direct.Tx (fanoutTx, mkHeadOutput)
 import qualified Hydra.Contract.HeadState as Head
 import Hydra.Contract.HeadTokens (mkHeadTokenScript)
@@ -33,12 +34,19 @@ healthyFanoutTx :: (Tx, UTxO)
 healthyFanoutTx =
   (tx, lookupUTxO)
  where
+  lookupUTxO =
+    UTxO.singleton (headInput, headOutput)
+      <> registryUTxO scriptRegistry
+
   tx =
     fanoutTx
+      scriptRegistry
       healthyFanoutUTxO
       (headInput, headOutput, headDatum)
       healthySlotNo
       headTokenScript
+
+  scriptRegistry = genScriptRegistry `generateWith` 42
 
   headInput = generateWith arbitrary 42
 
@@ -59,8 +67,6 @@ healthyFanoutTx =
         parties
 
   headDatum = fromPlutusData $ toData healthyFanoutDatum
-
-  lookupUTxO = UTxO.singleton (headInput, headOutput)
 
 healthyFanoutUTxO :: UTxO
 healthyFanoutUTxO =

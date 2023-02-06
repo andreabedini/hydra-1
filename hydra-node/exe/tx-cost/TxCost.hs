@@ -193,7 +193,7 @@ computeFanOutCost = do
   pure $ interesting <> limit
  where
   compute numElems = do
-    (utxo, tx) <- generate $ genFanoutTx maximumNumberOfParties numElems
+    (tx, utxo) <- generate $ genFanoutTx maximumNumberOfParties numElems
     case checkSizeAndEvaluate tx utxo of
       Just (txSize, memUnit, cpuUnit, minFee) ->
         pure $ Just (NumUTxO numElems, txSize, memUnit, cpuUnit, minFee)
@@ -212,7 +212,7 @@ computeFanOutCost = do
     let closeTx = close cctx stOpen snapshot startSlot closePoint
     let stClosed = snd . fromJust $ observeClose stOpen closeTx
     let deadlineSlotNo = slotNoFromUTCTime (getContestationDeadline stClosed)
-    pure (getKnownUTxO stClosed, fanout stClosed utxo deadlineSlotNo)
+    pure (fanout cctx stClosed utxo deadlineSlotNo, getKnownUTxO stClosed <> getKnownUTxO cctx)
 
 newtype NumParties = NumParties Int
   deriving newtype (Eq, Show, Ord, Num, Real, Enum, Integral)
