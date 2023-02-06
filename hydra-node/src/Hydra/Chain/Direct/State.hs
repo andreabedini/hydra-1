@@ -433,14 +433,14 @@ contest ::
   PointInTime ->
   Tx
 contest ctx st confirmedSnapshot pointInTime = do
-  contestTx ownVerificationKey sn sigs pointInTime closedThreadOutput headId
+  contestTx scriptRegistry ownVerificationKey sn sigs pointInTime closedThreadOutput headId
  where
   (sn, sigs) =
     case confirmedSnapshot of
       ConfirmedSnapshot{signatures} -> (getSnapshot confirmedSnapshot, signatures)
       _ -> (getSnapshot confirmedSnapshot, mempty)
 
-  ChainContext{ownVerificationKey} = ctx
+  ChainContext{ownVerificationKey, scriptRegistry} = ctx
 
   ClosedState
     { closedThreadOutput

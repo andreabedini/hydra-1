@@ -24,6 +24,7 @@ import Hydra.Chain.Direct.Contract.Mutation (
   replaceUtxoHash,
  )
 import Hydra.Chain.Direct.Fixture (testNetworkId, testPolicyId)
+import Hydra.Chain.Direct.ScriptRegistry (genScriptRegistry, registryUTxO)
 import Hydra.Chain.Direct.Tx (ClosedThreadOutput (..), contestTx, mkHeadId, mkHeadOutput)
 import qualified Hydra.Contract.HeadState as Head
 import Hydra.Contract.HeadTokens (headPolicyId)
@@ -51,8 +52,13 @@ healthyContestTx :: (Tx, UTxO)
 healthyContestTx =
   (tx, lookupUTxO)
  where
+  lookupUTxO =
+    UTxO.singleton (healthyClosedHeadTxIn, healthyClosedHeadTxOut)
+      <> registryUTxO scriptRegistry
+
   tx =
     contestTx
+      scriptRegistry
       somePartyCardanoVerificationKey
       healthyContestSnapshot
       (healthySignature healthyContestSnapshotNumber)
@@ -60,9 +66,9 @@ healthyContestTx =
       closedThreadOutput
       (mkHeadId testPolicyId)
 
-  headDatum = fromPlutusData $ toData healthyClosedState
+  scriptRegistry = genScriptRegistry `generateWith` 42
 
-  lookupUTxO = UTxO.singleton (healthyClosedHeadTxIn, healthyClosedHeadTxOut)
+  headDatum = fromPlutusData $ toData healthyClosedState
 
   closedThreadOutput =
     ClosedThreadOutput

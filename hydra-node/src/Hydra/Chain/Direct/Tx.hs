@@ -387,6 +387,8 @@ closeTx vk closing startSlotNo (endSlotNo, utcTime) openThreadOutput headId =
 -- something more principled at the protocol level itself and "merge" close and
 -- contest as one operation.
 contestTx ::
+  -- | Published Hydra scripts to reference.
+  ScriptRegistry ->
   -- | Party who's authorizing this transaction
   VerificationKey PaymentKey ->
   -- | Contested snapshot number (i.e. the one we contest to)
@@ -399,16 +401,21 @@ contestTx ::
   ClosedThreadOutput ->
   HeadId ->
   Tx
-contestTx vk Snapshot{number, utxo} sig (slotNo, _) ClosedThreadOutput{closedThreadUTxO = (headInput, headOutputBefore, ScriptDatumForTxIn -> headDatumBefore), closedParties, closedContestationDeadline, closedContesters} headId =
+contestTx scriptRegistry vk Snapshot{number, utxo} sig (slotNo, _) ClosedThreadOutput{closedThreadUTxO = (headInput, headOutputBefore, ScriptDatumForTxIn -> headDatumBefore), closedParties, closedContestationDeadline, closedContesters} headId =
   unsafeBuildTransaction $
     emptyTxBody
       & addInputs [(headInput, headWitness)]
+      & addReferenceInputs [headScriptRef]
       & addOutputs [headOutputAfter]
       & addExtraRequiredSigners [verificationKeyHash vk]
       & setValidityUpperBound slotNo
  where
   headWitness =
-    BuildTxWith $ ScriptWitness scriptWitnessCtx $ mkScriptWitness headScript headDatumBefore headRedeemer
+    BuildTxWith $
+      ScriptWitness scriptWitnessCtx $
+        mkScriptReference headScriptRef headScript headDatumBefore headRedeemer
+  headScriptRef =
+    fst (headReference scriptRegistry)
   headScript =
     fromPlutusScript @PlutusScriptV2 Head.validatorScript
   headRedeemer =
