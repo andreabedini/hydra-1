@@ -26,6 +26,7 @@ import Hydra.Chain.Direct.Contract.Mutation (
  )
 import Hydra.Chain.Direct.Fixture (testNetworkId)
 import qualified Hydra.Chain.Direct.Fixture as Fixture
+import Hydra.Chain.Direct.ScriptRegistry (genScriptRegistry, registryUTxO)
 import Hydra.Chain.Direct.TimeHandle (PointInTime)
 import Hydra.Chain.Direct.Tx (ClosingSnapshot (..), OpenThreadOutput (..), UTxOHash (UTxOHash), closeTx, mkHeadId, mkHeadOutput)
 import Hydra.ContestationPeriod (fromChain)
@@ -47,10 +48,6 @@ import Test.Hydra.Fixture (aliceSk, bobSk, carolSk)
 import Test.QuickCheck (arbitrarySizedNatural, choose, elements, listOf1, oneof, suchThat)
 import Test.QuickCheck.Instances ()
 
---
--- CloseTx
---
-
 -- | Healthy close transaction for the generic case were we close a head
 --   after one or more snapshot have been agreed upon between the members.
 healthyCloseTx :: (Tx, UTxO)
@@ -59,6 +56,7 @@ healthyCloseTx =
  where
   tx =
     closeTx
+      scriptRegistry
       somePartyCardanoVerificationKey
       closingSnapshot
       healthyCloseLowerBoundSlot
@@ -66,7 +64,11 @@ healthyCloseTx =
       openThreadOutput
       (mkHeadId Fixture.testPolicyId)
 
-  lookupUTxO = UTxO.singleton (healthyOpenHeadTxIn, healthyOpenHeadTxOut)
+  lookupUTxO =
+    UTxO.singleton (healthyOpenHeadTxIn, healthyOpenHeadTxOut)
+      <> registryUTxO scriptRegistry
+
+  scriptRegistry = genScriptRegistry `generateWith` 42
 
   headDatum = fromPlutusData $ toData healthyOpenHeadDatum
 
@@ -93,6 +95,7 @@ healthyCloseInitialTx =
  where
   tx =
     closeTx
+      scriptRegistry
       somePartyCardanoVerificationKey
       closingSnapshot
       healthyCloseLowerBoundSlot
@@ -100,7 +103,11 @@ healthyCloseInitialTx =
       openThreadOutput
       (mkHeadId Fixture.testPolicyId)
 
-  lookupUTxO = UTxO.singleton (healthyOpenHeadTxIn, healthyOpenHeadTxOut)
+  lookupUTxO =
+    UTxO.singleton (healthyOpenHeadTxIn, healthyOpenHeadTxOut)
+      <> registryUTxO scriptRegistry
+
+  scriptRegistry = genScriptRegistry `generateWith` 42
 
   headDatum = fromPlutusData $ toData healthyOpenHeadDatum
 
