@@ -45,8 +45,8 @@ healthyCommitTx =
       <> registryUTxO scriptRegistry
   tx =
     commitTx
-      scriptRegistry
       Fixture.testNetworkId
+      scriptRegistry
       (mkHeadId Fixture.testPolicyId)
       commitParty
       (Just healthyCommittedUTxO)

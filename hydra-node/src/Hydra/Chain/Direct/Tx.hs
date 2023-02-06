@@ -160,9 +160,9 @@ mkInitialOutput networkId tokenPolicyId (verificationKeyHash -> pkh) =
 
 -- | Craft a commit transaction which includes the "committed" utxo as a datum.
 commitTx ::
+  NetworkId ->
   -- | Published Hydra scripts to reference.
   ScriptRegistry ->
-  NetworkId ->
   HeadId ->
   Party ->
   -- | A single UTxO to commit to the Head
@@ -172,7 +172,7 @@ commitTx ::
   -- locked by initial script
   (TxIn, TxOut CtxUTxO, Hash PaymentKey) ->
   Tx
-commitTx scriptRegistry networkId headId party utxo (initialInput, out, vkh) =
+commitTx networkId scriptRegistry headId party utxo (initialInput, out, vkh) =
   unsafeBuildTransaction $
     emptyTxBody
       & addInputs [(initialInput, initialWitness)]
