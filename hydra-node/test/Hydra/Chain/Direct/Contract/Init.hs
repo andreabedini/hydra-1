@@ -75,17 +75,17 @@ data ObserveInitMutation
 genInitMutation :: (Tx, UTxO) -> Gen SomeMutation
 genInitMutation (tx, _utxo) =
   oneof
-    [ SomeMutation Nothing MintTooManyTokens <$> changeMintedValueQuantityFrom tx 1
-    , SomeMutation Nothing MutateAddAnotherPT <$> addPTWithQuantity tx 1
-    , SomeMutation Nothing MutateInitialOutputValue <$> do
+    [ SomeMutation (Just "wrong quantities minted") MintTooManyTokens <$> changeMintedValueQuantityFrom tx 1
+    , SomeMutation (Just "wrong quantity of minted asset names in policy") MutateAddAnotherPT <$> addPTWithQuantity tx 1
+    , SomeMutation (Just "no PT distributed") MutateInitialOutputValue <$> do
         let outs = txOuts' tx
         (ix :: Int, out) <- elements (drop 1 $ zip [0 ..] outs)
         value' <- genValue `suchThat` (/= txOutValue out)
         pure $ ChangeOutput (fromIntegral ix) (modifyTxOutValue (const value') out)
-    , SomeMutation Nothing MutateDropInitialOutput <$> do
+    , SomeMutation (Just "minted wrong") MutateDropInitialOutput <$> do
         ix <- choose (1, length (txOuts' tx) - 1)
         pure $ RemoveOutput (fromIntegral ix)
-    , SomeMutation Nothing MutateDropSeedInput <$> do
+    , SomeMutation (Just "wrong seed input consumed") MutateDropSeedInput <$> do
         pure $ RemoveInput healthySeedInput
     ]
 

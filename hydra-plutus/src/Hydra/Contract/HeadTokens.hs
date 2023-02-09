@@ -51,12 +51,25 @@ validate initialValidator headValidator seedInput action context =
 
 validateTokensMinting :: ValidatorHash -> ValidatorHash -> TxOutRef -> ScriptContext -> Bool
 validateTokensMinting initialValidator headValidator seedInput context =
-  traceIfFalse "minted wrong" $
-    participationTokensAreDistributed currency initialValidator txInfo nParties
-      && checkQuantities
-      && assetNamesInPolicy == nParties + 1
-      && seedInputIsConsumed
+  checkPTsAreDistributed
+    && checkMintedQuantities
+    && checkAssetNamesInPolicy
+    && checkSeedInputIsConsumed
  where
+  checkPTsAreDistributed =
+    traceIfFalse "minted wrong" $
+      participationTokensAreDistributed currency initialValidator txInfo nParties
+
+  checkMintedQuantities = traceIfFalse "wrong quantities minted" checkQuantities
+
+  checkAssetNamesInPolicy =
+    traceIfFalse "wrong quantity of minted asset names in policy" $
+      assetNamesInPolicy == nParties + 1
+
+  checkSeedInputIsConsumed =
+    traceIfFalse "wrong seed input consumed" $
+      seedInput `elem` (txInInfoOutRef <$> txInfoInputs txInfo)
+
   currency = ownCurrencySymbol context
 
   minted = getValue $ txInfoMint txInfo
@@ -86,8 +99,6 @@ validateTokensMinting initialValidator headValidator seedInput context =
                   Just Head.Initial{Head.parties = parties} -> length parties
                   Just _ -> traceError "unexpected State in datum"
       _ -> traceError "expected single head output"
-
-  seedInputIsConsumed = seedInput `elem` (txInInfoOutRef <$> txInfoInputs txInfo)
 
 -- TODO: does this even make sense to check? Shouldn't we check that we are
 -- doing an abort of fanout (terminal transitions) of the v_head? Or is this
