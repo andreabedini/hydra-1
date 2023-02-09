@@ -238,7 +238,7 @@ genCloseMutation (tx, _utxo) =
     , SomeMutation (Just "invalid snapshot signature") MutateSnapshotNumberButNotSignature <$> do
         mutatedSnapshotNumber <- arbitrarySizedNatural `suchThat` (\n -> n /= healthySnapshotNumber && n > 0)
         pure $ ChangeOutput 0 $ changeHeadOutputDatum (replaceSnapshotNumber $ toInteger mutatedSnapshotNumber) headTxOut
-    , SomeMutation Nothing MutateParties . ChangeInputHeadDatum <$> do
+    , SomeMutation (Just "invalid snapshot signature") MutateParties . ChangeInputHeadDatum <$> do
         mutatedParties <- arbitrary `suchThat` (/= healthyOnChainParties)
         pure $
           Head.Open
@@ -253,10 +253,10 @@ genCloseMutation (tx, _utxo) =
     , SomeMutation (Just "changed parameters") MutateHeadIdInOutput <$> do
         otherHeadId <- toPlutusCurrencySymbol . headPolicyId <$> arbitrary `suchThat` (/= Fixture.testSeedInput)
         pure $ ChangeOutput 0 $ changeHeadOutputDatum (replaceHeadId otherHeadId) headTxOut
-    , SomeMutation Nothing MutateRequiredSigner <$> do
+    , SomeMutation (Just "signer is not a participant") MutateRequiredSigner <$> do
         newSigner <- verificationKeyHash <$> genVerificationKey
         pure $ ChangeRequiredSigners [newSigner]
-    , SomeMutation Nothing MutateCloseUTxOHash . ChangeOutput 0 <$> mutateCloseUTxOHash
+    , SomeMutation (Just "invalid snapshot signature") MutateCloseUTxOHash . ChangeOutput 0 <$> mutateCloseUTxOHash
     , SomeMutation (Just "incorrect closed contestation deadline") MutateContestationDeadline <$> do
         mutatedDeadline <- genMutatedDeadline
         pure $ ChangeOutput 0 $ changeHeadOutputDatum (replaceContestationDeadline mutatedDeadline) headTxOut
@@ -271,7 +271,8 @@ genCloseMutation (tx, _utxo) =
             [ ChangeValidityInterval (TxValidityLowerBound lowerSlotNo, TxValidityUpperBound upperSlotNo)
             , ChangeOutput 0 $ changeHeadOutputDatum (replaceContestationDeadline adjustedContestationDeadline) headTxOut
             ]
-    , SomeMutation Nothing MutateHeadId <$> do
+    , -- REVIEW: There is no trace for this error. Fails due to `unListData`
+      SomeMutation Nothing MutateHeadId <$> do
         otherHeadId <- headPolicyId <$> arbitrary `suchThat` (/= Fixture.testSeedInput)
         pure $
           Changes
