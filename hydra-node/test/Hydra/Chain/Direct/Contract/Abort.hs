@@ -145,26 +145,28 @@ data AbortMutation
 genAbortMutation :: (Tx, UTxO) -> Gen SomeMutation
 genAbortMutation (tx, _utxo) =
   oneof
-    [ SomeMutation Nothing MutateParties . ChangeInputHeadDatum <$> do
+    [ SomeMutation (Just "burnt token number mismatch") MutateParties . ChangeInputHeadDatum <$> do
         moreParties <- (: healthyParties) <$> arbitrary
         c <- arbitrary
         pure $ Head.Initial c (partyToChain <$> moreParties) (toPlutusCurrencySymbol $ headPolicyId testSeedInput)
-    , SomeMutation Nothing DropOneCommitOutput
+    , SomeMutation (Just "reimbursed outputs dont match") DropOneCommitOutput
         . RemoveOutput
         <$> choose (0, fromIntegral (length (txOuts' tx) - 1))
-    , SomeMutation Nothing MutateThreadTokenQuantity <$> changeMintedValueQuantityFrom tx (-1)
-    , SomeMutation Nothing BurnOneTokenMore <$> addPTWithQuantity tx (-1)
-    , SomeMutation Nothing DropCollectedInput . RemoveInput <$> elements (txIns' tx)
+    , SomeMutation (Just "burnt token number mismatch") MutateThreadTokenQuantity <$> changeMintedValueQuantityFrom tx (-1)
+    , SomeMutation (Just "burnt token number mismatch") BurnOneTokenMore <$> addPTWithQuantity tx (-1)
+    , -- REVIEW: why here are we getting back a trace from HeadTokens?
+      SomeMutation (Just "inconsistent quantity of head tokens burnt") DropCollectedInput . RemoveInput <$> elements (txIns' tx)
     , SomeMutation (Just "signer is not a participant") MutateRequiredSigner <$> do
         newSigner <- verificationKeyHash <$> genVerificationKey
         pure $ ChangeRequiredSigners [newSigner]
-    , SomeMutation Nothing MutateHeadId <$> do
+    , -- REVIEW: why here are we getting back a trace from HeadTokens?
+      SomeMutation (Just "inconsistent quantity of head tokens burnt") MutateHeadId <$> do
         illedHeadResolvedInput <-
           mkHeadOutputInitial testNetworkId
             <$> fmap headPolicyId (arbitrary `suchThat` (/= testSeedInput))
             <*> pure healthyHeadParameters
         return $ ChangeInput healthyHeadInput (toUTxOContext illedHeadResolvedInput) (Just $ toScriptData Head.Abort)
-    , SomeMutation Nothing UseInputFromOtherHead <$> do
+    , SomeMutation (Just "burnt token number mismatch") UseInputFromOtherHead <$> do
         (input, output, _) <- elements healthyInitials
         otherHeadId <- fmap headPolicyId (arbitrary `suchThat` (/= testSeedInput))
         pure $
