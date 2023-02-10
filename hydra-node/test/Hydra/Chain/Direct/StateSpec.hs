@@ -86,6 +86,7 @@ import Test.Hydra.Prelude (
   describe,
   forAll2,
   genericCoverTable,
+  it,
   parallel,
   prop,
  )
@@ -108,6 +109,7 @@ import Test.QuickCheck (
   (===),
   (==>),
  )
+import Test.QuickCheck.Monadic (monadic, monadicIO, monadicST, pick, stop)
 import qualified Prelude
 
 spec :: Spec
@@ -129,7 +131,10 @@ spec = parallel $ do
   describe "init" $ do
     propBelowSizeLimit maxTxSize forAllInit
     propIsValid forAllInit
-
+    it "proper head is observed" $
+      monadicIO $ do
+        _ctx <- pick (genHydraContext maximumNumberOfParties)
+        pure False
     prop "is not observed if not invited" $
       forAll2 (genHydraContext maximumNumberOfParties) (genHydraContext maximumNumberOfParties) $ \(ctxA, ctxB) ->
         null (ctxParties ctxA `intersect` ctxParties ctxB)
