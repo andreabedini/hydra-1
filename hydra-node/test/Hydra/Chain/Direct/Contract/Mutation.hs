@@ -281,6 +281,8 @@ data Mutation
     ChangeValidityInterval (TxValidityLowerBound, TxValidityUpperBound)
   | ChangeValidityLowerBound TxValidityLowerBound
   | ChangeValidityUpperBound TxValidityUpperBound
+  | -- | Change the included minting policy and update any minted/burned values
+    ChangeMintingPolicy
   | -- | Applies several mutations as a single atomic 'Mutation'.
     -- This is useful to enable specific mutations that require consistent
     -- change of more than one thing in the transaction and/or UTxO set, for
@@ -396,6 +398,8 @@ applyMutation mutation (tx@(Tx body wits), utxo) = case mutation of
     changeValidityInterval (Just bound) Nothing
   ChangeValidityUpperBound bound ->
     changeValidityInterval Nothing (Just bound)
+  ChangeMintingPolicy ->
+    (tx, utxo)
   Changes mutations ->
     foldr applyMutation (tx, utxo) mutations
  where
