@@ -145,11 +145,13 @@ spec = parallel $ do
         ctx <- pickBlind (genHydraContext maximumNumberOfParties)
         cctx <- pickBlind $ pickChainContext ctx
         seedInput <- pickBlind arbitrary
+        txOut <- pickBlind genTxOutAdaOnly
+
         let tx = initialize cctx (ctxHeadParameters ctx) seedInput
         assert $ isJust (observeInit cctx tx)
+
         let alwaysSucceedsV2 = PlutusScriptSerialised $ Plutus.alwaysSucceedingNAryFunction 2
         let mutation = ChangeMintingPolicy alwaysSucceedsV2
-        txOut <- pickBlind genTxOutAdaOnly
         let utxo = UTxO.singleton (seedInput, txOut)
         let (tx', utxo') = applyMutation mutation (tx, utxo)
         assert $
@@ -158,6 +160,7 @@ spec = parallel $ do
             Right ok
               | all isRight ok -> True
               | otherwise -> traceShow ok False
+
         pure $
           isNothing (observeInit cctx tx')
             & counterexample ("new minting policy: " <> show (hashScript $ PlutusScript alwaysSucceedsV2))
