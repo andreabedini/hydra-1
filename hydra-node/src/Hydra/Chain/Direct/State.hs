@@ -818,7 +818,8 @@ genStInitial ctx = do
   seedInput <- genTxIn
   cctx <- pickChainContext ctx
   let txInit = initialize cctx (ctxHeadParameters ctx) seedInput
-  pure (cctx, snd . fromJust $ observeInit cctx txInit)
+  let initState = unsafeObserveInit cctx txInit
+  pure (cctx, initState)
 
 genInitTx ::
   HydraContext ->
@@ -834,7 +835,9 @@ genCommits ::
 genCommits ctx txInit = do
   allChainContexts <- deriveChainContexts ctx
   forM allChainContexts $ \cctx -> do
-    let (_, stInitial) = fromJust $ observeInit cctx txInit
+    let (_, stInitial) = case observeInit cctx txInit of
+          Left err -> error $ "Did not observe an init tx: " <> show err
+          Right st -> st
     unsafeCommit cctx stInitial <$> genCommit
 
 genCommit :: Gen UTxO
@@ -939,7 +942,18 @@ unsafeCommit ::
 unsafeCommit ctx st u =
   either (error . show) id $ commit ctx st u
 
+unsafeObserveInit ::
+  HasCallStack =>
+  ChainContext ->
+  Tx ->
+  InitialState
+unsafeObserveInit cctx txInit =
+  case observeInit cctx txInit of
+    Left err -> error $ "Did not observe an init tx: " <> show err
+    Right st -> snd st
+
 unsafeObserveInitAndCommits ::
+  HasCallStack =>
   ChainContext ->
   Tx ->
   [Tx] ->
@@ -947,7 +961,8 @@ unsafeObserveInitAndCommits ::
 unsafeObserveInitAndCommits ctx txInit commits =
   (utxo, stInitial')
  where
-  (_, stInitial) = fromJust $ observeInit ctx txInit
+  stInitial = unsafeObserveInit ctx txInit
+
   (utxo, stInitial') = flip runState stInitial $ do
     forM commits $ \txCommit -> do
       st <- get
