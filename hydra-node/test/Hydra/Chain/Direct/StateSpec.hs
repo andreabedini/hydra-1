@@ -70,11 +70,13 @@ import Hydra.ContestationPeriod (toNominalDiffTime)
 import Hydra.Ledger.Cardano (
   genOutput,
   genTxIn,
+  genTxOutAdaOnly,
   genValue,
   renderTx,
   renderTxWithUTxO,
  )
 import Hydra.Ledger.Cardano.Evaluate (
+  evaluateTx,
   evaluateTx',
   maxTxExecutionUnits,
   maxTxSize,
@@ -147,7 +149,15 @@ spec = parallel $ do
         assert $ isJust (observeInit cctx tx)
         let alwaysSucceedsV2 = PlutusScriptSerialised $ Plutus.alwaysSucceedingNAryFunction 2
         let mutation = ChangeMintingPolicy alwaysSucceedsV2
-        let (tx', _) = applyMutation mutation (tx, mempty)
+        txOut <- pickBlind genTxOutAdaOnly
+        let utxo = UTxO.singleton (seedInput, txOut)
+        let (tx', utxo') = applyMutation mutation (tx, utxo)
+        assert $
+          case evaluateTx tx' utxo' of
+            Left e -> traceShow e False
+            Right ok
+              | all isRight ok -> True
+              | otherwise -> traceShow ok False
         pure $
           isNothing (observeInit cctx tx')
             & counterexample ("new minting policy: " <> show (hashScript $ PlutusScript alwaysSucceedsV2))
