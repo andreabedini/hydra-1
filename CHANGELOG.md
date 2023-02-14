@@ -20,6 +20,7 @@ changes.
   + Replace `fromConsensusPointHF` with `fromConsensusPointInMode` and
     `toConsensusPointHF` with `toConsensusPointInMode`.
   + Re-export new `AcquiringFailure` type from `cardano-api`.
+  + Add `fromPlutusCurrencySymbol` conversion function.
 
 - **BREAKING** Addressed short-comings in `hydra-plutus` scripts:
   + Check presence of state token (ST) and that it's consistent against datum.
