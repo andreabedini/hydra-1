@@ -11,6 +11,7 @@ import qualified Cardano.Api.UTxO as UTxO
 import Cardano.Binary (serialize)
 import qualified Data.ByteString.Lazy as LBS
 import Data.List (intersect)
+import qualified Data.List as List
 import qualified Data.Map as Map
 import qualified Data.Set as Set
 import Hydra.Cardano.Api (
@@ -18,6 +19,8 @@ import Hydra.Cardano.Api (
   UTxO,
   hashScript,
   renderUTxO,
+  scriptPolicyId,
+  toPlutusCurrencySymbol,
   txInputSet,
   txOutValue,
   txOuts',
@@ -32,7 +35,7 @@ import Hydra.Cardano.Api (
 import Hydra.Chain (
   PostTxError (..),
  )
-import Hydra.Chain.Direct.Contract.Mutation (Mutation (ChangeMintingPolicy), applyMutation)
+import Hydra.Chain.Direct.Contract.Mutation (Mutation (ChangeMintingPolicy, ChangeOutput, Changes), applyMutation, changeHeadOutputDatum, replaceHeadId)
 import Hydra.Chain.Direct.State (
   ChainContext (..),
   ChainState,
@@ -145,15 +148,23 @@ spec = parallel $ do
         ctx <- pickBlind (genHydraContext maximumNumberOfParties)
         cctx <- pickBlind $ pickChainContext ctx
         seedInput <- pickBlind arbitrary
-        txOut <- pickBlind genTxOutAdaOnly
+        seedTxOut <- pickBlind genTxOutAdaOnly
 
         let tx = initialize cctx (ctxHeadParameters ctx) seedInput
         assert $ isRight (observeInit cctx tx)
-
+        -- We do replace the minting policy and datum of a head output to
+        -- simulate a faked init transaction.
         let alwaysSucceedsV2 = PlutusScriptSerialised $ Plutus.alwaysSucceedingNAryFunction 2
-        let mutation = ChangeMintingPolicy alwaysSucceedsV2
-        let utxo = UTxO.singleton (seedInput, txOut)
+        let fakeHeadId = toPlutusCurrencySymbol . scriptPolicyId $ PlutusScript alwaysSucceedsV2
+        let headTxOut = List.head (txOuts' tx)
+        let mutation =
+              Changes
+                [ ChangeMintingPolicy alwaysSucceedsV2
+                , ChangeOutput 0 $ changeHeadOutputDatum (replaceHeadId fakeHeadId) headTxOut
+                ]
+        let utxo = UTxO.singleton (seedInput, seedTxOut)
         let (tx', utxo') = applyMutation mutation (tx, utxo)
+        -- We expected mutated transaction to still be valid, but not observed.
         assert $
           case evaluateTx tx' utxo' of
             Left e -> traceShow e False
