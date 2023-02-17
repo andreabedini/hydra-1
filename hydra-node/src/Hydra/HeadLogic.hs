@@ -625,12 +625,14 @@ onOpenClientNewTx env ledger st tx =
 --
 -- __Transition__: 'OpenState' → 'OpenState'
 onOpenNetworkReqTx ::
+  Eq (SeenSnapshot tx) =>
+  Environment ->
   Ledger tx ->
   OpenState tx ->
   -- | The transaction to be submitted to the head.
   tx ->
   Outcome tx
-onOpenNetworkReqTx ledger st tx =
+onOpenNetworkReqTx env ledger st tx =
   case applyTransactions seenUTxO [tx] of
     Left (_, err) -> Wait $ WaitOnNotApplicableTx err
     Right utxo' ->
@@ -649,6 +651,7 @@ onOpenNetworkReqTx ledger st tx =
               }
         )
         [ClientEffect $ TxSeen headId tx]
+        & emitSnapshot env
  where
   Ledger{applyTransactions} = ledger
 
@@ -764,6 +767,7 @@ onOpenNetworkReqSn env ledger st otherParty sn txs ev
 -- __Transition__: 'OpenState' → 'OpenState'
 onOpenNetworkAckSn ::
   IsTx tx =>
+  Environment ->
   OpenState tx ->
   -- | Party which sent the AckSn.
   Party ->
@@ -772,7 +776,7 @@ onOpenNetworkAckSn ::
   -- | Snapshot number of this AckSn.
   SnapshotNumber ->
   Outcome tx
-onOpenNetworkAckSn openState otherParty snapshotSignature sn =
+onOpenNetworkAckSn env openState otherParty snapshotSignature sn =
   case seenSnapshot of
     NoSeenSnapshot -> Wait WaitOnSeenSnapshot
     RequestedSnapshot -> Wait WaitOnSeenSnapshot
@@ -800,6 +804,7 @@ onOpenNetworkAckSn openState otherParty snapshotSignature sn =
                         }
                   )
                   [ClientEffect $ SnapshotConfirmed headId snapshot multisig]
+                  & emitSnapshot env
               else
                 NewState
                   ( onlyUpdateCoordinatedHeadState $
@@ -1012,11 +1017,11 @@ update env ledger st ev = case (st, ev) of
     | ttl == 0 ->
       OnlyEffects [ClientEffect $ TxExpired headId tx]
     | otherwise ->
-      onOpenNetworkReqTx ledger openState tx
+      onOpenNetworkReqTx env ledger openState tx
   (Open openState, NetworkEvent _ (ReqSn otherParty sn txs)) ->
     onOpenNetworkReqSn env ledger openState otherParty sn txs ev
   (Open openState, NetworkEvent _ (AckSn otherParty snapshotSignature sn)) ->
-    onOpenNetworkAckSn openState otherParty snapshotSignature sn
+    onOpenNetworkAckSn env openState otherParty snapshotSignature sn
   ( Open openState
     , OnChainEvent Observation{observedTx = OnCloseTx{snapshotNumber = closedSnapshotNumber, contestationDeadline}, newChainState}
     ) ->
@@ -1051,6 +1056,8 @@ update env ledger st ev = case (st, ev) of
   _ ->
     Error $ InvalidEvent ev st
 
+-- * Snapshot helper functions
+
 data SnapshotOutcome tx
   = ShouldSnapshot SnapshotNumber [tx] -- TODO(AB) : should really be a Set (TxId tx)
   | ShouldNotSnapshot NoSnapshotReason
@@ -1069,39 +1076,43 @@ isLeader HeadParameters{parties} p (UnsafeSnapshotNumber sn) =
     _ -> False
 
 -- | Snapshot emission decider
-newSn :: IsTx tx => Environment -> HeadParameters -> CoordinatedHeadState tx -> SnapshotOutcome tx
+newSn :: Eq (SeenSnapshot tx) => Environment -> HeadParameters -> CoordinatedHeadState tx -> SnapshotOutcome tx
 newSn Environment{party} parameters CoordinatedHeadState{confirmedSnapshot, seenSnapshot, seenTxs} =
-  let Snapshot{number} = getSnapshot confirmedSnapshot
-      nextSnapshotNumber = succ number
-   in if
-          | not (isLeader parameters party nextSnapshotNumber) ->
-            ShouldNotSnapshot $ NotLeader nextSnapshotNumber
-          | seenSnapshot /= NoSeenSnapshot ->
-            ShouldNotSnapshot $ SnapshotInFlight nextSnapshotNumber
-          | null seenTxs ->
-            ShouldNotSnapshot NoTransactionsToSnapshot
-          | otherwise ->
-            ShouldSnapshot nextSnapshotNumber seenTxs
+  if
+      | not (isLeader parameters party nextSn) ->
+        ShouldNotSnapshot $ NotLeader nextSn
+      | -- REVIEW: This is slightly different than in the spec. Also, if we use
+        -- seenSn /= confirmedSn here, the model tests would not pass ->
+        -- incomplete spec?
+        seenSnapshot /= NoSeenSnapshot ->
+        ShouldNotSnapshot $ SnapshotInFlight nextSn
+      | null seenTxs ->
+        ShouldNotSnapshot NoTransactionsToSnapshot
+      | otherwise ->
+        ShouldSnapshot nextSn seenTxs
+ where
+  nextSn = confirmedSn + 1
 
--- TODO: This is the only logic NOT in 'update' and gets applied on top of it in
--- "Hydra.Node". We tried to do this decision inside 'update' in the past, but
--- ended up doing it here. Is it really not possible to just call this function
--- from the respective places in 'update'? i.e. as a last step on
--- 'onOpenNetworkReqTx' and 'onOpenNetworkAckSn'?
-emitSnapshot :: IsTx tx => Environment -> [Effect tx] -> HeadState tx -> (HeadState tx, [Effect tx])
-emitSnapshot env@Environment{party} effects = \case
-  st@(Open OpenState{parameters, coordinatedHeadState, previousRecoverableState, chainState, headId}) ->
-    case newSn env parameters coordinatedHeadState of
-      ShouldSnapshot sn txs ->
-        ( Open
-            OpenState
-              { parameters
-              , coordinatedHeadState = coordinatedHeadState{seenSnapshot = RequestedSnapshot}
-              , previousRecoverableState
-              , chainState
-              , headId
-              }
-        , NetworkEffect (ReqSn party sn txs) : effects
-        )
-      _ -> (st, effects)
-  st -> (st, effects)
+  Snapshot{number = confirmedSn} = getSnapshot confirmedSnapshot
+
+-- | Emit a snapshot if we are the next snapshot leader. 'Outcome' modifying
+-- signature so it can be chained with other 'update' functions.
+emitSnapshot :: Eq (SeenSnapshot tx) => Environment -> Outcome tx -> Outcome tx
+emitSnapshot env@Environment{party} outcome =
+  case outcome of
+    NewState (Open OpenState{parameters, coordinatedHeadState, previousRecoverableState, chainState, headId}) effects ->
+      case newSn env parameters coordinatedHeadState of
+        ShouldSnapshot sn txs ->
+          NewState
+            ( Open
+                OpenState
+                  { parameters
+                  , coordinatedHeadState = coordinatedHeadState{seenSnapshot = RequestedSnapshot}
+                  , previousRecoverableState
+                  , chainState
+                  , headId
+                  }
+            )
+            $ NetworkEffect (ReqSn party sn txs) : effects
+        _ -> outcome
+    _ -> outcome
