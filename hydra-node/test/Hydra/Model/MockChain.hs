@@ -74,7 +74,7 @@ mockChainAndNetwork ::
   TVar m [MockHydraNode m] ->
   ContestationPeriod ->
   m (ConnectToChain Tx m, Async m ())
-mockChainAndNetwork tr seedKeys _parties nodes cp = do
+mockChainAndNetwork tr seedKeys parties nodes cp = do
   queue <- newTQueueIO
   labelTQueueIO queue "chain-queue"
   tickThread <- async (labelThisThread "chain" >> simulateTicks queue)
@@ -112,7 +112,7 @@ mockChainAndNetwork tr seedKeys _parties nodes cp = do
         nodeState <- createNodeState $ IdleState{chainState}
         let HydraNode{eq} = node
         let callback = chainCallback nodeState eq
-        let chainHandler = chainSyncHandler tr callback getTimeHandle ctx
+        let chainHandler = chainSyncHandler tr callback getTimeHandle ctx parties
         let node' =
               node
                 { hn =
