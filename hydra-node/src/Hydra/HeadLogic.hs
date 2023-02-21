@@ -15,6 +15,8 @@ module Hydra.HeadLogic where
 
 import Hydra.Prelude
 
+import Data.Aeson (withObject, (.:), (.=))
+import qualified Data.Aeson as Aeson
 import Data.List (elemIndex, (\\))
 import qualified Data.Map.Strict as Map
 import qualified Data.Set as Set
@@ -138,8 +140,34 @@ instance (IsTx tx, Arbitrary (ChainStateType tx)) => Arbitrary (HeadState tx) wh
 
 deriving instance (IsTx tx, Eq (ChainStateType tx)) => Eq (HeadState tx)
 deriving instance (IsTx tx, Show (ChainStateType tx)) => Show (HeadState tx)
-deriving instance (IsTx tx, ToJSON (ChainStateType tx)) => ToJSON (HeadState tx)
-deriving instance (IsTx tx, FromJSON (ChainStateType tx)) => FromJSON (HeadState tx)
+
+instance (IsTx tx, ToJSON (ChainStateType tx)) => ToJSON (HeadState tx) where
+  toJSON = \case
+    Idle s -> toJSON s & tagObjectWith "IdleState"
+    Initial s -> toJSON s & tagObjectWith "InitialState"
+    Open s -> toJSON s & tagObjectWith "OpenState"
+    Closed s -> toJSON s & tagObjectWith "ClosedState"
+   where
+    tagObjectWith t = \case
+      Aeson.Object contents ->
+        Aeson.Object $ contents <> "tag" .= Aeson.String t
+      v -> v
+
+instance (IsTx tx, FromJSON (ChainStateType tx)) => FromJSON (HeadState tx) where
+  parseJSON v = withObject "HeadState" parse v
+   where
+    parse o =
+      o .: "tag" >>= \case
+        "IdleState" -> Idle <$> parseJSON v
+        "InitialState" -> Initial <$> parseJSON v
+        "OpenState" -> Open <$> parseJSON v
+        "ClosedState" -> Closed <$> parseJSON v
+        (t :: Text) ->
+          fail $
+            "expected tag field to be one of \
+            \[IdleState | InitialState | OpenState | ClosedState], \
+            \but found tag "
+              <> show t
 
 -- | Get the chain state in any 'HeadState'.
 getChainState :: HeadState tx -> ChainStateType tx
