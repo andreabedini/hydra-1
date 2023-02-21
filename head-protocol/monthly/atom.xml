@@ -1,0 +1,248 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+    <id>https://input-output-hk.github.io/head-protocol/monthly</id>
+    <title>Hydra: Head Protocol Blog</title>
+    <updated>2023-01-26T11:32:23.000Z</updated>
+    <generator>https://github.com/jpmonette/feed</generator>
+    <link rel="alternate" href="https://input-output-hk.github.io/head-protocol/monthly"/>
+    <subtitle>Hydra: Head Protocol Blog</subtitle>
+    <icon>https://input-output-hk.github.io/head-protocol/img/hydra.png</icon>
+    <entry>
+        <title type="html"><![CDATA[January 2023]]></title>
+        <id>2023-01</id>
+        <link href="https://input-output-hk.github.io/head-protocol/monthly/2023-01"/>
+        <updated>2023-01-26T11:32:23.000Z</updated>
+        <summary type="html"><![CDATA[This report summarizes the work on Hydra since December 2022. It serves as]]></summary>
+        <content type="html"><![CDATA[<p>This report summarizes the work on Hydra since December 2022. It serves as
+preparation for the monthly review meeting, where the teams update major project
+stakeholders on recent developments to gather their feedback on the proposed
+plan forward.</p><h2 class="anchor anchorWithStickyNavbar_mojV" id="roadmap">Roadmap<a class="hash-link" href="#roadmap" title="Direct link to heading">​</a></h2><p>Looking at the <a href="https://github.com/orgs/input-output-hk/projects/21" target="_blank" rel="noopener noreferrer">roadmap</a>,
+there are just a few things to report this month:</p><ul><li><p>Regroomed <a href="https://github.com/input-output-hk/hydra/issues/448" target="_blank" rel="noopener noreferrer">Create updated specification for coordinated head protocol
+#448</a> to 💛,
+as good progress was made on the specification</p></li><li><p>Marked <a href="https://github.com/input-output-hk/hydra/issues/452" target="_blank" rel="noopener noreferrer">Align implementation with HeadV1 protocol specification
+#452</a> as 🔴, as
+the team experienced scope creep and has not progressed as fast as expected.</p><ul><li>The plan is to break this initiative into smaller tasks to address and
+explain implementation challenges.</li></ul></li></ul><p><img loading="lazy" src="/head-protocol/assets/images/2023-01-roadmap-d445b3f9b76a572928bb5b6b3e404442.png" width="3122" height="982"> <small></small></p><center><small> The latest roadmap with minor
+changes, which needs a reflection of the latest objectives. </small></center><p></p><h2 class="anchor anchorWithStickyNavbar_mojV" id="development">Development<a class="hash-link" href="#development" title="Direct link to heading">​</a></h2><p><a href="https://github.com/input-output-hk/hydra/issues?q=is%3Aclosed+sort%3Aupdated-desc+closed%3A2022-12-23..2023-01-24" target="_blank" rel="noopener noreferrer">Issues closed since last
+report</a></p><p>This month, the team worked on the following:</p><ul><li><p><strong>First write-up of Hydra spec online</strong>. The team has been aggregating the
+latest definitions of on- and off-chain semantics into a new technical
+specification. The latest version can still be found <a href="https://www.overleaf.com/project/6389ba5edbcf7a51fda1328f" target="_blank" rel="noopener noreferrer">on
+Overleaf</a>, before
+its integration into the core Hydra repository. Should you have feedback,
+please send it our way through one of the <a href="https://github.com/input-output-hk/hydra/blob/master/SUPPORT.md" target="_blank" rel="noopener noreferrer">communication
+channels</a>.</p></li><li><p><strong>Closed more gaps in the Head Contract.</strong> The team addressed two more gaps in
+the on-chain scripts based on discussions on the specification.</p><ul><li><p>All validators are authenticated now and ensure contract continuity by
+checking for the state tokens in the output (or getting burned).</p></li><li><p>Abort now fully reimburses all committed UTXOs, even if two parties would
+have committed the exact same output (quite a theoretical attack vector).</p></li></ul><p>This work is captured in
+<a href="https://github.com/input-output-hk/hydra/issues/452" target="_blank" rel="noopener noreferrer">#452</a>, but this work
+item is taking quite a bit longer than expected. Also, it's a single feature
+item, lacking some rationale on certain requirements, so we intend to break
+this down into smaller pieces over the next days and weeks.</p></li><li><p><strong>Mutation test framework improvements.</strong> While closing gaps in the contracts,
+the team realized that some of the <a href="https://hydra.family/head-protocol/haddock/hydra-node/tests/Hydra-Chain-Direct-Contract-Mutation.html" target="_blank" rel="noopener noreferrer">mutation
+tests</a>
+were correctly tripping validators and making transactions invalid, but not
+always for the right reason. In fact, some of the mutations were ‘too harsh’
+and made the even transaction not even pass phase-1 validation. The team
+addressed this by introducing a first (naiive) way to assert the right cause
+of the failure by checking strings in the validator log.
+<a href="https://github.com/input-output-hk/hydra/pulls/679" target="_blank" rel="noopener noreferrer">#679</a></p></li><li><p><strong>Add <code>headId</code> in API and TUI.</strong> The team not only added the unique <code>headId</code>
+to the appropriate server outputs and the TUI
+<a href="https://github.com/input-output-hk/hydra/pull/678" target="_blank" rel="noopener noreferrer">#678</a>, but also added
+sequence numbers and timestamps to produced outputs
+<a href="https://github.com/input-output-hk/hydra/pull/618" target="_blank" rel="noopener noreferrer">#618</a>. This feature was
+asked for by users and simplifies identifying of heads and integration with
+the hydra-node.</p></li><li><p><strong>Hydra explorer experiment.</strong> Some of the team used the holiday season to
+conduct some experiments on summarizing Hydra Heads observed on a network.
+This quick hack already demonstrates the value of a Hydra explorer as a tool
+to measure adoption by open heads on a given network. Naturally, it would
+reuse code from the hydra-node and challenge the architecture used in it for
+tracking multiple heads. Also, it will drive discussion about the versioning
+of hydra-plutus and the possibility to track multiple versions of the Hydra
+protocol on the chain (hashes/addresses change in each version).</p></li></ul><p><img loading="lazy" src="/head-protocol/assets/images/2023-01-explorer-051813ee8b3a4cac21ca35d6ba2f83d0.png" width="2765" height="801"> <small></small></p><center><small> Hydra explorer first experiment
+UI </small></center><p></p><h2 class="anchor anchorWithStickyNavbar_mojV" id="community">Community<a class="hash-link" href="#community" title="Direct link to heading">​</a></h2><ul><li><p><strong>The Hydra for Voting project</strong>, which got kicked off in December is picking
+up steam with deep dives into Catalyst voting and Hydra technology.
+Discussions are currently held in various settings and the team is continuing
+to develop a picture of what is achievable.</p></li><li><p><strong>Hydra for auctions lite paper</strong>. IOG is collaborating with MLabs on
+exploring how Hydra can improve auction use cases. At this stage, the teams
+discussed multiple approaches on structuring the problem space with various
+Hydra topologies and specific trade-offs. The full case study was published
+<a href="https://www.essentialcardano.io/article/implementing-auction-projects-using-hydra" target="_blank" rel="noopener noreferrer">on Essential
+Cardano</a>.
+The teams plan to upstream the findings back into the <a href="https://hydra.family/head-protocol/use-cases/nft-auction/" target="_blank" rel="noopener noreferrer">use case
+section</a> on the
+Hydra website from which this project originated.</p></li></ul><h2 class="anchor anchorWithStickyNavbar_mojV" id="themes-for-2023">Themes for 2023<a class="hash-link" href="#themes-for-2023" title="Direct link to heading">​</a></h2><p>After kicking off planning in a
+<a href="http://ncoding.at:3000/head-protocol/monthly/2022-11#cardano-summit--workshop" target="_blank" rel="noopener noreferrer">workshop</a>
+and reflecting on <a href="https://cardanofoundation.org/en/news/hydra-head-protocol-an-open-source-solution-for-scalability/" target="_blank" rel="noopener noreferrer">what Hydra achieved in
+2023</a>,
+the team has progressed in fleshing out relevant themes and objectives for this
+year to position Hydra as a sustainable open-source project in the age of
+Voltaire:</p><ul><li><p><strong>A mainnet mature application</strong></p><ul><li><strong>Why?</strong> The core contributors should be able to use the protocol on
+mainnet, so it should be maintainable and mature enough to lock some ada in
+a Hydra Head using a reference DApp (eg, hydraw). By creating and growing
+this DApp, the team will
+<a href="https://en.wikipedia.org/wiki/Eating_your_own_dog_food" target="_blank" rel="noopener noreferrer">dogfood</a> features
+and hence improve additional usability.</li><li><strong>How to measure?</strong> Number of heads on mainnet &gt; 0 and core contributors
+feel confident to lock at least 100₳ in a Hydra Head on mainnet.</li><li><strong>Next steps:</strong><ul><li>Publish Hydra Head V1 specification</li><li>Close gaps in implementation and release 0.9.0</li><li>Create a request for proposals (RFP) to audit the specification and its
+implementation</li></ul></li></ul></li><li><p><strong>Increase adoption</strong></p><ul><li><strong>Why?</strong> The team wants to showcase what is possible with Hydra through
+benchmarks and lighthouse projects, enabling use cases and reducing friction
+to use Hydra. Also, ensuring interoperability through open standards and
+reference implementations.</li><li><strong>How to measure?</strong> Number of third-party created heads on any network &gt; 0</li><li><strong>Next steps:</strong><ul><li>Build a basic Hydra Head explorer to measure adoption</li><li>Benchmark off-chain performance (of a selected scenario)</li><li>Demonstrate Hydra for payments to potential users</li><li>Support Hydra for voting project</li><li>Hydra for auctions project exploring a delegated voucher auction</li></ul></li></ul></li><li><p><strong>Sustainable open-source-development</strong></p><ul><li><strong>Why?</strong> The team wants to scale Cardano in the long run. Hence this project
+should not be owned by a single entity, but by the community and the Cardano
+network itself. It is thus essential to make contributions to the project
+possible and ultimately it should be easy to become a contributor.</li><li><strong>How to measure?</strong> Number of contributors on GitHub</li><li><strong>Next steps:</strong><ul><li>Open up monthly reviews</li><li>Add tutorials to the website</li><li>Publish and maintain a use-case-centric roadmap and feature map</li></ul></li></ul></li></ul><h2 class="anchor anchorWithStickyNavbar_mojV" id="conclusion">Conclusion<a class="hash-link" href="#conclusion" title="Direct link to heading">​</a></h2><p>This monthly review was the first public one with not only stakeholders from IOG
+and the CF, but also collaborators of the latest projects. This was the first
+step to a more open and transparent development process.</p><p>The teams showed some classic demos – like the ‘hydraw’ application which has
+been running on the same Hydra Head for four weeks now – and some new
+developments on the Hydra explorer and minor improvements to hydra-node API and
+TUI.</p><p>It was very interesting to bring various teams together to exchange ideas and
+thoughts on the individual roadmaps for the new year. The teams also shared the
+relevant themes and objectives of the Hydra project for 2023 (as also listed
+above). They will now make sure to reflect these steps into this concrete
+<a href="https://github.com/orgs/input-output-hk/projects/21" target="_blank" rel="noopener noreferrer">roadmap</a> such that it will
+contain <a href="https://www.agilealliance.org/glossary/mmf/" target="_blank" rel="noopener noreferrer">marketable features</a>
+bringing us closer to these goals.</p>]]></content>
+        <author>
+            <name>Sebastian Nagel</name>
+            <uri>https://github.com/ch1bo</uri>
+        </author>
+        <category label="monthly" term="monthly"/>
+    </entry>
+    <entry>
+        <title type="html"><![CDATA[December 2022]]></title>
+        <id>2022-12</id>
+        <link href="https://input-output-hk.github.io/head-protocol/monthly/2022-12"/>
+        <updated>2023-01-09T08:43:30.000Z</updated>
+        <summary type="html"><![CDATA[This report summarizes the work on Hydra since November 2022 and also serves as]]></summary>
+        <content type="html"><![CDATA[<p>This report summarizes the work on Hydra since November 2022 and also serves as
+a preparation &amp; write-up of the monthly review meeting, in which we update major
+stakeholders of the project on recent developments and gather their feedback on
+our proposed plan forward each month.</p><h2 class="anchor anchorWithStickyNavbar_mojV" id="roadmap">Roadmap<a class="hash-link" href="#roadmap" title="Direct link to heading">​</a></h2><p>Looking at our <a href="https://github.com/orgs/input-output-hk/projects/21" target="_blank" rel="noopener noreferrer">roadmap</a> we
+can report the following updates:</p><h4 class="anchor anchorWithStickyNavbar_mojV" id="notable-changes">Notable changes<a class="hash-link" href="#notable-changes" title="Direct link to heading">​</a></h4><ul><li>Completed <a href="https://github.com/input-output-hk/hydra/issues/194" target="_blank" rel="noopener noreferrer">Validate coordinated head protocol against formal model #194 </a> </li><li>Detailed a follow-up <a href="https://github.com/input-output-hk/hydra/issues/656" target="_blank" rel="noopener noreferrer">Validate soundness with Model Based Testing #656</a></li><li>Focus on specification and gap-closing to support audit</li><li>Scoped down 0.9.0 to be only about script updates and moved <a href="https://github.com/input-output-hk/hydra/issues/215" target="_blank" rel="noopener noreferrer">Commit from external wallet #215</a> into next version</li><li>Groomed <a href="https://github.com/input-output-hk/hydra/issues/195" target="_blank" rel="noopener noreferrer">React to mainchain protocol changes #195</a></li><li>More users requesting <a href="https://github.com/input-output-hk/hydra/issues/196" target="_blank" rel="noopener noreferrer">Support timed transactions #196</a></li></ul><p><img loading="lazy" src="/head-protocol/assets/images/2022-12-roadmap-120a9df31c88202e1d06943bbcf156c8.png" width="3119" height="985"></p><small><center>Latest roadmap with drafted 0.10.0 version.</center></small><h2 class="anchor anchorWithStickyNavbar_mojV" id="development">Development<a class="hash-link" href="#development" title="Direct link to heading">​</a></h2><p><a href="https://github.com/input-output-hk/hydra/issues?q=is%3Aclosed+sort%3Aupdated-desc+closed%3A2022-11-30..2022-12-31" target="_blank" rel="noopener noreferrer">Issues closed since last report</a></p><p>This month we have been working on:</p><ul><li><p><strong>Fixed <code>AcquirePointTooOld</code> errors</strong> by changing the way the internal wallet
+initializes its state
+<a href="https://github.com/input-output-hk/hydra/pull/621" target="_blank" rel="noopener noreferrer">#621</a>. See the PR
+description for details. This did not strictly happen this month, but we have
+not mentioned it last time. </p></li><li><p><strong>Closed first gap in Head Contract</strong>: We collected gaps between specification
+and current implementation in
+<a href="https://github.com/input-output-hk/hydra/issues/452" target="_blank" rel="noopener noreferrer">#452</a> and started now
+closing them. This first issue, was to prevent DoS / stalling of heads, by
+bounding the lower and upper transaction validity time of the <code>close</code>
+transaction. As always, time handling is hard and this required detailed
+discussion in the form of an ADR. See
+<a href="https://hydra.family/head-protocol/adr/21" target="_blank" rel="noopener noreferrer">ADR21</a> for more details.</p></li><li><p><strong>Reduced cost of commits</strong> by at least <strong>30%</strong> using reference scripts also
+in the <code>commit</code> transaction. We only used reference scripts in <code>abort</code> so far.
+This reduces the min ADA cost of <code>commit</code> because the transactions are roughly
+5.2KB smaller.</p><p>Before:
+<img loading="lazy" src="/head-protocol/assets/images/2022-12-commit-782f8dd66a0344326187358e3f41bc48.png" width="557" height="108"></p><p>After:
+<img loading="lazy" src="/head-protocol/assets/images/2022-12-commit-new-aad3874fc0d688c64d1e40fd556433d3.png" width="553" height="107"></p></li><li><p><strong>Use nix flakes &amp; build docker images using nix</strong>: Triggered by a migration
+to Cicero for a nix-based CI, we started using nix flakes for <code>nix build</code> and
+<code>nix develop</code> instead of the legacy <code>nix-shell</code> in
+<a href="https://github.com/input-output-hk/hydra/pull/646" target="_blank" rel="noopener noreferrer">#646</a>. While we ended up
+sticking with Github Actions as the only CI and a Cachix cache, we extended
+this work to build our docker images more efficiently using <code>nix</code> in
+<a href="https://github.com/input-output-hk/hydra/pull/654" target="_blank" rel="noopener noreferrer">#654</a>.</p><p>Image sizes went down between 20-50%:</p><p><img loading="lazy" src="/head-protocol/assets/images/2022-12-docker-images-bc1665869d91e36b30b5191f084e141a.png" width="1552" height="244"></p><p>While docker CI builds on <code>master</code> went down to 1-10min (from 10-30m+)!</p></li></ul><h2 class="anchor anchorWithStickyNavbar_mojV" id="hydra-v1-specification">Hydra V1 Specification<a class="hash-link" href="#hydra-v1-specification" title="Direct link to heading">​</a></h2><p>Finally, we bit the bullet and started a write-up of the specification. Over the
+last couple of months we had worked with marked up versions (see below) of the
+original paper and a GDoc to discuss and review the protocol as it was
+implemented.</p><p><img loading="lazy" src="/head-protocol/assets/images/2022-12-marked-up-paper-5354284a6ca23c01b74593af47a94fa2.png" width="707" height="540"></p><p>As we also updated the security properties and proofs, we started aggregating a
+LaTeX document on overleaf. While it holds a similar background and
+preliminaries as the original paper, it only specifies a single version of the
+protocol with no variants, less modularization, as well as explicit assumptions
+and important notes for implementors.</p><p><img loading="lazy" src="/head-protocol/assets/images/2022-12-spec-overleaf-36d2b23cfb2f8931a3e4200623041da1.png" width="1577" height="689"></p><p>We aim to be publishing the spec as part of the main <a href="https://github.com/input-output-hk/hydra" target="_blank" rel="noopener noreferrer">hydra repository</a> soon.</p><h2 class="anchor anchorWithStickyNavbar_mojV" id="community">Community<a class="hash-link" href="#community" title="Direct link to heading">​</a></h2><ul><li><p><strong>Hydra for Payments project</strong> completed the first phase of this work stream
+by tagging version <a href="https://github.com/obsidiansystems/hydra-pay/releases/tag/v0.1.0" target="_blank" rel="noopener noreferrer">0.1.0</a>.
+This open source project conducted by Obsidian Systems and sponsored by IOG
+created a great starting point for developers to build services/APIs of
+payment channels using Hydra Head. This month we reviewed the improved
+documentation and are looking forward to see this work applied to eventually
+build fast &amp; cheap payments for light-wallet users and power payment channel
+use cases from business-to-business (B2B) in the short-term.</p></li><li><p><strong>Hydra for Voting project</strong> kicked off this joint project between IOG
+Research, Catalyst &amp; Hydra Tribes, and the Cardano Foundation. The goal is to
+assess suitability of Hydra Head to support voting use cases by implementing
+parts of Catalyst voting system on Hydra Head and benchmark execution at
+scale. The kick-off meeting took place on December 15.
+</p></li><li><p><strong>Blog post by CF</strong>: To round off the year, Matthias wrote a nice
+<a href="https://cardanofoundation.org/en/news/hydra-head-protocol-an-open-source-solution-for-scalability/" target="_blank" rel="noopener noreferrer">retrospective blog
+post</a>
+about Hydra at the CF. Besides summarizing our progress made in 2022 it also
+gives an outlook where Hydra is headed for in 2023.</p></li></ul><h2 class="anchor anchorWithStickyNavbar_mojV" id="conclusion">Conclusion<a class="hash-link" href="#conclusion" title="Direct link to heading">​</a></h2><p>Although Hydra is in essence an open source project right now, we would love to
+make it "even more open source" in the coming months. Our vision of Hydra
+requires to have the builders of the Cardano ecosystem to be part of this
+journey. For that matter, we want not only to open up these monthly reports, but
+the review meeting backing it as well!</p><p>This, besides our engagements with the community above, will allow the project
+to grow beyond IOG &amp; CF contributions. To become the true Cardano open source
+project we believe will be worthy to serve as the scalability component required
+by the Cardano network.</p>]]></content>
+        <author>
+            <name>Sebastian Nagel</name>
+            <uri>https://github.com/ch1bo</uri>
+        </author>
+        <category label="monthly" term="monthly"/>
+    </entry>
+    <entry>
+        <title type="html"><![CDATA[November 2022]]></title>
+        <id>2022-11</id>
+        <link href="https://input-output-hk.github.io/head-protocol/monthly/2022-11"/>
+        <updated>2022-12-05T09:19:28.000Z</updated>
+        <summary type="html"><![CDATA[Introduction]]></summary>
+        <content type="html"><![CDATA[<h2 class="anchor anchorWithStickyNavbar_mojV" id="introduction">Introduction<a class="hash-link" href="#introduction" title="Direct link to heading">​</a></h2><p>This report summarizes the activities of the Hydra team since October 2022 and also serves as a preparation &amp; write-up of the monthly review meeting, in which we update major stakeholders of the project on recent developments and gather their feedback on our proposed plan forward each month.</p><h2 class="anchor anchorWithStickyNavbar_mojV" id="roadmap-update">Roadmap update<a class="hash-link" href="#roadmap-update" title="Direct link to heading">​</a></h2><p>Looking at our <a href="https://github.com/orgs/input-output-hk/projects/21" target="_blank" rel="noopener noreferrer">roadmap</a> we can report the following releases and updates:</p><h4 class="anchor anchorWithStickyNavbar_mojV" id="release-080">Release <code>0.8.0</code><a class="hash-link" href="#release-080" title="Direct link to heading">​</a></h4><ul><li>Long overdue feature release adding persistence to the hydra-node</li><li>Backup &amp; restore the state of a Hydra Head <a href="https://github.com/input-output-hk/hydra/issues/187" target="_blank" rel="noopener noreferrer">#187</a></li><li>Improve user experience following hydraw experiment <a href="https://github.com/input-output-hk/hydra/issues/518" target="_blank" rel="noopener noreferrer">#518</a> from being only a discussion to a (to-be-groomed &amp; planned) feature</li><li><a href="https://github.com/input-output-hk/hydra/releases/tag/0.8.0" target="_blank" rel="noopener noreferrer">Full release notes</a></li></ul><h4 class="anchor anchorWithStickyNavbar_mojV" id="release-081">Release <code>0.8.1</code><a class="hash-link" href="#release-081" title="Direct link to heading">​</a></h4><ul><li>Follow-up release addressing user feedback on persistence from <code>0.8.0</code></li><li>Allow clients to see latest state after restart <a href="https://github.com/input-output-hk/hydra/issues/580" target="_blank" rel="noopener noreferrer">#580</a></li><li>Bug fixes of following chain state <a href="https://github.com/input-output-hk/hydra/issues/599" target="_blank" rel="noopener noreferrer">#599</a></li><li><a href="https://github.com/input-output-hk/hydra/releases/tag/0.8.1" target="_blank" rel="noopener noreferrer">Full release notes</a></li></ul><h4 class="anchor anchorWithStickyNavbar_mojV" id="notable-changes">Notable changes<a class="hash-link" href="#notable-changes" title="Direct link to heading">​</a></h4><ul><li>Impact mapping from workshop (see below) and reviewing the starmap above had us discuss whether the scope for <code>1.0.0</code> is correct or not</li><li>Need to be conscious of scope creep vs. getting something audited</li><li>Focus on getting the spec done, <code>0.9.0</code> tagged and an audit under way now → minor re-ordering in priorities</li><li>Iterative releases afterwards still - even while getting audited, non-contract changes first</li><li>Promoted <a href="https://github.com/input-output-hk/hydra/issues/635" target="_blank" rel="noopener noreferrer">https://github.com/input-output-hk/hydra/issues/635</a> from being only a discussion to a (to-be-groomed &amp; planned) feature</li></ul><p><img loading="lazy" src="/head-protocol/assets/images/2022-11-roadmap-68fe47060bc543ac9013efeb0fd9335d.png" width="4096" height="1671"></p><small><center>Latest roadmap with 0.8.0 and 0.8.1 already released and slight re-ordering on 0.9.0</center></small><h2 class="anchor anchorWithStickyNavbar_mojV" id="development">Development<a class="hash-link" href="#development" title="Direct link to heading">​</a></h2><p>Issues closed since last report: <a href="https://github.com/input-output-hk/hydra/issues?page=1&amp;q=is%3Aclosed+sort%3Aupdated-desc+closed%3A%3E%3D2022-10-19" target="_blank" rel="noopener noreferrer">Issues - input-output-hk/hydra</a></p><p>Besides the things in the releases above (see roadmap update), we have
+been working on:</p><ul><li><p><strong>Flaky TUI CI tests:</strong> We have sunk quite some time again in
+investigating cryptic CI failures in our TUI end-to-end tests. They
+have been crashing abruptly without any information and thus
+hard-to-debug. This investigation was unsuccessful and we realized
+at some point that the TUI tests are not that important anyways - we
+have API-level end-to-end tests. So we disabled these tests for now.</p></li><li><p><strong>Published</strong> <code>hydra-cardano-api</code> <strong>to CHaP:</strong> With the Cardano
+Haskell Packages (CHaP) becoming available now and wanting to be a
+good citizen, we pushed for getting our flavor of the <code>cardano-api</code>
+also published there. This is non-trivial though, as we are at an
+integration point even "further up" than the <code>cardano-node</code>
+<a href="https://github.com/input-output-hk/hydra/issues/504" target="_blank" rel="noopener noreferrer">#504</a></p></li><li><p><strong>Implemented ADR18:</strong> While the first stints on persistence already
+make it possible to restart <code>hydra-node</code> without needing to close a
+Head, we have implemented this in a nicer way now only keeping a
+single state (ground truth) for both L2 and L1 information
+<a href="https://github.com/input-output-hk/hydra/issues/541" target="_blank" rel="noopener noreferrer">#541</a> of the Head protocol and the specification, we kept
+discovering bigger and bigger issues and hence realized the need for
+a discussion on transaction validity in context of closing /
+contesting Heads. <a href="#615">#615</a></p></li></ul><h2 class="anchor anchorWithStickyNavbar_mojV" id="formal-verification--specification">Formal verification &amp; specification<a class="hash-link" href="#formal-verification--specification" title="Direct link to heading">​</a></h2><p>An important part of the project right now is the formalization and
+audit preparation:</p><ul><li><p><strong>Internal audit</strong> has started with involvement of two persons from IOG IT
+team, each one addressing different part of Hydra:</p><ul><li>One auditor is working on the project as a whole, targeting
+potential vulnerabilities with the off-chain code, the
+infrastructure, dependencies, etc. This has not lead to any
+significant issue nor action plan so far.</li><li>Another auditor is specifically targeting the formal
+specification and the on-chain code to identify vulnerabilities
+in the protocol itself.</li></ul></li><li><p>Discussions with researchers have led to the development of a joint Coordinated Hydra Head V1 specification defining formally the protocol as it is actually implemented.</p><ul><li>Work on this document has already allowed us to identify gaps</li><li>It is the basis on which BCryptic's analyst is working to audit Hydra protocol</li><li>It allows us to make explicit a lot of implicit assumptions that are in the code but not in the original paper and "Shape" the language used to describe the protocol</li></ul></li><li><p>We have drafted an RFP for submission to <strong>external</strong> auditors
+<a href="https://github.com/input-output-hk/hydra/blob/audit/rfp/security/RFP.md" target="_blank" rel="noopener noreferrer">https://github.com/input-output-hk/hydra/blob/audit/rfp/security/RFP.md</a> defining the scope and targets of the audit</p></li><li><p>We are still unsure about whether our <strong>approach</strong> is the right one as having a "formal specification" in a manually checked document spanning a dozen pages seems quite brittle.</p><ul><li><p>Some progress has been made on "formalizing" properties to be automatically "QuickChecked" using an executable model of the expected behavior of the system but this approach seems more suited for "team-internal consumption", e.g. building confidence within the core committers and contributors</p></li><li><p>Ideally, we would want a proper formalization of the protocol, using an existing theorem proving/model checking framework, through which properties could be asserted. Quite a lot of work has already been done in blockchain space, including some work on Lightning and TLA+ or some other state-machine/temporal logic based language appear promising:</p><ul><li><a href="https://www.youtube.com/watch?v=wecVT_4QDcU" target="_blank" rel="noopener noreferrer">https://www.youtube.com/watch?v=wecVT_4QDcU</a></li><li><a href="https://github.com/rberenguel/tla_lightning" target="_blank" rel="noopener noreferrer">https://github.com/rberenguel/tla_lightning</a></li><li><a href="https://www.amazon.com/Practical-TLA-Planning-Driven-Development/dp/1484238281" target="_blank" rel="noopener noreferrer">https://www.amazon.com/Practical-TLA-Planning-Driven-Development/dp/1484238281</a></li></ul></li><li><p>This effort should be done in accordance to the DApps certification process</p></li></ul></li></ul><h2 class="anchor anchorWithStickyNavbar_mojV" id="product">Product<a class="hash-link" href="#product" title="Direct link to heading">​</a></h2><p>Most updates on the product side of things have been addressed in the
+starmap update above.</p><ul><li><p><strong>Hydra for Payments lighthouse project</strong>: Latest demonstration
+shown by Obsidian Systems on how to use payment channels in a "light
+way" from a web frontend. The API evolved and we were able to use
+the <code>preview</code> testnet now. The project is progressing very nicely
+and we are optimistic to close it successfully soon with improved
+documentation and usability.</p></li><li><p><strong>NFT auctions lighthouse project:</strong> After doing surveys and
+interviews, MLabs is currently concluding the discovery phase with a
+light / white paper on how NFT auctions could be implemented using
+Hydra (today or in the future with more features).</p></li><li><p><strong>Drafting Voting on Hydra project</strong>: Work has started on building a
+Proof-of-concept for voting on Hydra targeting Catalyst’s use case but with an eye towards building a generic solution suitable for large scale voting systems based on Hydra Head</p><p>This development should be undertaken jointly with the Cardano Foundation and SundaeSwap who are also interested in building such a system and recently demonstrated their capacity of doing voting via the Cardano Summit voting system.</p></li><li><p><strong>TxPipe demonstrated integration with demeter.run:</strong> Without our
+help nor even knowing of this effort, TxPipe has recently shown an
+early prototype of <code>hydra-node</code>s instrumented via their
+<a href="https://demeter.run" target="_blank" rel="noopener noreferrer">demeter.run</a> platform. This has come a bit as a surprise and is exactly why we love open source ❤️ → <a href="https://www.loom.com/share/c811360e60084f18ab9e9f16cc941432" target="_blank" rel="noopener noreferrer">Video</a></p></li></ul><h2 class="anchor anchorWithStickyNavbar_mojV" id="team--open-source">Team &amp; open source<a class="hash-link" href="#team--open-source" title="Direct link to heading">​</a></h2><p>Some notable developments this month have been:</p><ul><li><p><strong>Renamed the repository:</strong> from <strong>hydra-poc</strong> to
+<a href="https://github.com/input-output-hk/hydra" target="_blank" rel="noopener noreferrer"><strong>hydra</strong></a>! This was revealed in the summit presentation (see below) and should indicate that the project is not only a Proof of Concept (POC) anymore, but has become more - as also demonstrated by the various early adopters and demos lately. 🐲</p></li><li><p><strong>Inner source (IOG) contribution:</strong> The education team has been working on a Hydra Tutorial and we have been involved in reviewing and trying it out. This is a great effort and will help people get started with Hydra. Thanks folks 💚</p></li></ul><h2 class="anchor anchorWithStickyNavbar_mojV" id="cardano-summit--workshop">Cardano Summit &amp; workshop<a class="hash-link" href="#cardano-summit--workshop" title="Direct link to heading">​</a></h2><p>This month there was also the Cardano Summit, this time organized by the
+Cardano Foundation and the content was even voted on by the community!
+We have been both, invited and nominated as panelist and speakers and
+this makes us extremely proud! In general, the reception of Hydra seems
+to be very positive in the community from what we could experience first
+hand on the summit.</p><p>Agenda items we participated in:</p><ul><li><p><a href="https://summit.cardano.org/agenda-day-1/best-of-blockchain-best-of-open-source/" target="_blank" rel="noopener noreferrer">Best of blockchain, best of open source - Open Source panel </a> with IOG, CF &amp; TxPipe</p></li><li><p><a href="https://summit.cardano.org/agenda-day-2/cardano-ballot-speaker-winner-presentation-6/" target="_blank" rel="noopener noreferrer">Cardano Ballot Speaker Winner: Dev Team</a> Introduction to Hydra and
+reveal of the repository rename 🎉</p></li></ul><p>After attending the summit, we also used the fact that the whole team is
+in one location for a team workshop. We booked a coworking space and
+spent 3 days together. Not much coding &amp; hacking this time, but we are
+happy to have produced these results:</p><ul><li><p><strong>Timeline / year in review:</strong> As we had new team members with us,
+the request was to give a recap of how the Hydra project evolved
+over the last two years. The whole timeline can bee seen below, and
+this also sparked the idea of creating a "Year in review" blog post,
+which is currently in preparation.</p></li><li><p><strong>Retrospective</strong>: In-person workshops are the perfect place for
+doing retrospectives to reflect on what was good, bad and collecting
+ideas &amp; actions in how to improve our work environment and
+processes.</p><p><img loading="lazy" src="/head-protocol/assets/images/2022-11-retro-110daa66ba7449f00dc091e80b65df51.png" width="4096" height="2155"></p><small><center>Retrospective board from 2022-11-22</center></small></li><li><p><strong>Impact map:</strong> Conscious about the fact that the project got defined about one year ago in a first project plan, and inspired by timeline and (short-term) ideas, we also set off to reflect on the <strong>Why</strong>, <strong>How</strong> and <strong>What</strong> of this project.</p><p>After reviewing the project vision, we reached for the tool of our choice to ideate on tangible objectives / deliverables - impact maps! Also, we felt the need to use a different goal this time. One that is reflecting more closely (or, in fact, broadly) what our current mission is. So instead of the <strong>% of Cardano transactions are done on L2</strong>, we set a new goal: being the <strong>number one DApp on Cardano</strong> (by all known metrics: TVL, traffic, volume etc..) Fundamentally, both goals illustrate the same idea, but the latter better supports the narrative that Hydra is also just a DApp (not a network upgrade) and needs usage &amp; adoption to reach our vision.</p><p>Below you see the result of our session. We checked back to the old impact map after creating this one, and many things are still relevant / similar on the new sample (it's never complete!) - some of the deliverables we even achieved.</p><p><img loading="lazy" src="/head-protocol/assets/images/2022-11-impact-97ad611fd8b3395a70498f12d26703de.png" width="4096" height="3449"></p><small><center>Impact map with new goal</center></small></li></ul><h1>Conclusion</h1><p>Reflecting on our original plans (about a year ago) and our current roadmap we can say we are behind our anticipated schedule. However, recent developments on the lighthouse projects and community members contributing &amp; using Hydra are convincing us that we are on the right track. The summit paints a similar picture and we feel reinvigorated by the great people we met, discussions we had and relationships we created &amp; solidified on the summit and during our Hydra workshop.</p>]]></content>
+        <author>
+            <name>Sebastian Nagel</name>
+            <uri>https://github.com/ch1bo</uri>
+        </author>
+        <category label="monthly" term="monthly"/>
+    </entry>
+</feed>
