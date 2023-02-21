@@ -24,7 +24,6 @@ import Hydra.Chain.Direct.State (
   contest,
   ctxHeadParameters,
   ctxHydraSigningKeys,
-  ctxParties,
   fanout,
   genCloseTx,
   genCommits,
